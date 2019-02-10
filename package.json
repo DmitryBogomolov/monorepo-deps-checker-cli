@@ -1,0 +1,28 @@
+{
+  "name": "monorepo-deps-checker-cli",
+  "version": "0.0.1",
+  "description": "Command line interface for 'monorepo-deps-checker'",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Dmitry Bogomolov",
+  "bugs": {
+    "url": "https://github.com/DmitryBogomolov/monorepo-deps-checker-cli/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DmitryBogomolov/monorepo-deps-checker-c;i.git"
+  },
+  "keywords": [
+    "monorepo",
+    "dependencies",
+    "version",
+    "cli"
+  ],
+  "engines": {
+    "node": ">=6.0"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "monorepo-deps-checker": "0.0.2"
+  }
+}
