@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const check = require('monorepo-deps-checker');
 
 function resolvePackagesVersions(conflicts) {
