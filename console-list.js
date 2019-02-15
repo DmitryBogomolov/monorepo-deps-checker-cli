@@ -8,23 +8,39 @@ const CTRLC = '\u0003';
 
 rl.emitKeypressEvents(cin);
 
+function makeInfo(items) {
+    let lineCount = 0;
+    const objects = items.map((item) => {
+        const lines = item.split('\n');
+        lineCount += lines.length;
+        return { lines };
+    });
+    return { objects, lineCount };
+}
+
 function renderList(items, focus, selection) {
-    items.forEach((item, i) => {
+    items.forEach(({ lines }, i) => {
         const focusCh = i === focus ? '-' : ' ';
         const selectCh = selection.has(i) ? '*' : ' ';
-        cout.write(`${focusCh}[${selectCh}] ${item}\n`);
+        const prefix = `${focusCh}[${selectCh}] `;
+        const dumb = ' '.repeat(prefix.length);
+        cout.write(`${prefix}${lines[0]}\n`);
+        lines.slice(1).forEach((line) => {
+            cout.write(`${dumb}${line}\n`);
+        });
     });
 }
 
-function clearList(items) {
-    items.forEach(() => {
+function clearList(lineCount) {
+    for (let i = 0; i < lineCount; ++i) {
         rl.moveCursor(cout, 0, -1);
         rl.clearLine(cout, 0);
-    });
+    }
 }
 
 function showList(items, initialSelection) {
     cin.setRawMode(true);
+    const { objects, lineCount } = makeInfo(items);
     return new Promise((resolve, reject) => {
         let focus = 0;
         const selection = new Set(initialSelection);
@@ -50,12 +66,12 @@ function showList(items, initialSelection) {
             }
             if (newFocus !== focus) {
                 focus = newFocus;
-                clearList(items);
-                renderList(items, focus, selection);
+                clearList(lineCount);
+                renderList(objects, focus, selection);
             }
         };
         cin.on('keypress', handle);
-        renderList(items, focus, selection);
+        renderList(objects, focus, selection);
     });
 }
 

@@ -13,11 +13,11 @@ function resolveModulesVersions(conflicts) {
 
 Promise.resolve()
     .then(() => {
-        return showList(['Item 1', 'Item 2', 'Item 3']);
+        return showList(['Item 1\na', 'Item 2\nb', 'Item 3']);
     })
     .then((selected) => {
         console.log('Selection 1', selected);
-        return showList(['Item 4', 'Item 5', 'Item 6', 'Item 7']);
+        return showList(['Item 4', 'Item 5\nc', 'Item 6', 'Item 7']);
     })
     .then((selected) => {
         console.log('Selection 2', selected);
