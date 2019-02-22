@@ -78,6 +78,7 @@ function printList(items, options = {}) {
         const dispose = () => {
             cin.off('keypress', handle);
             cin.setRawMode(false);
+            clearList(lineCount);
         };
         const close = () => {
             dispose();
