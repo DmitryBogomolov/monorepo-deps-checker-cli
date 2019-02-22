@@ -18,6 +18,10 @@ function makeInfo(items) {
     return { objects, lineCount };
 }
 
+function clampIndex(value, count) {
+    return 0 <= value && value < count ? Number(value) : NaN;
+}
+
 function renderList(items, focus, selection) {
     items.forEach(({ lines }, i) => {
         const focusCh = i === focus ? '-' : ' ';
@@ -38,41 +42,68 @@ function clearList(lineCount) {
     }
 }
 
-function showList(items, initialSelection) {
-    cin.setRawMode(true);
+const defaultHandlers = {
+    'up': ({ focus, setFocus }) => {
+        setFocus(focus - 1);
+    },
+    'down': ({ focus, setFocus }) => {
+        setFocus(focus + 1);
+    },
+    'space': ({ focus, toggleTag }) => {
+        toggleTag(focus);
+    },
+    'return': ({ close }) => {
+        close();
+    },
+};
+
+function printList(items, options = {}) {
     const { objects, lineCount } = makeInfo(items);
+    let focus = Number(options.focus) || 0;
+    const tags = new Set(options.tags);
+    const refresh = () => {
+        clearList(lineCount);
+        renderList(objects, focus, tags);
+    };
+    const setFocus = (value) => {
+        const newFocus = clampIndex(value, items.length);
+        if (isFinite(newFocus) && newFocus !== focus) {
+            focus = newFocus;
+            refresh();
+        }
+    };
+    const toggleTag = (value) => {
+        const tag = clampIndex(value, items.length);
+        if (isFinite(tag)) {
+            tags[tags.has(tag) ? 'delete' : 'add'](tag);
+            refresh();
+        }
+    };
     return new Promise((resolve, reject) => {
-        let focus = 0;
-        const selection = new Set(initialSelection);
-        function handle(key, data) {
+        const dispose = () => {
+            cin.off('keypress', handle);
+            cin.setRawMode(false);
+        };
+        const close = () => {
+            dispose();
+            resolve(tags);
+        };
+        const handlers = Object.assign({}, defaultHandlers, options.handlers);
+        const handle = (key, data) => {
             if (data.sequence === ESC || data.sequence === CTRLC) {
+                dispose();
                 reject(new Error('Canceled'));
-                cin.setRawMode(false);
                 return;
             }
-            let newFocus = focus;
-            switch(data.name) {
-                case 'up':
-                    newFocus = Math.max(focus - 1, 0);
-                    break;
-                case 'down':
-                    newFocus = Math.min(focus + 1, items.length - 1);
-                    break;
-                case 'return':
-                    cin.off('keypress', handle);
-                    resolve(focus);
-                    cin.setRawMode(false);
-                    return;
-            }
-            if (newFocus !== focus) {
-                focus = newFocus;
-                clearList(lineCount);
-                renderList(objects, focus, selection);
+            const handler = handlers[data.name];
+            if (handler) {
+                handler({ focus, setFocus, toggleTag, close });
             }
         };
+        cin.setRawMode(true);
         cin.on('keypress', handle);
-        renderList(objects, focus, selection);
+        renderList(objects, focus, tags);
     });
 }
 
-module.exports = showList;
+module.exports = printList;
