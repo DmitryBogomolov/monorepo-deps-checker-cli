@@ -8,31 +8,25 @@ const CTRLC = '\u0003';
 
 rl.emitKeypressEvents(cin);
 
-function makeInfo(items) {
-    let lineCount = 0;
-    const objects = items.map((item) => {
-        const lines = item.split('\n');
-        lineCount += lines.length;
-        return { lines };
-    });
-    return { objects, lineCount };
-}
-
 function clampIndex(value, count) {
     return 0 <= value && value < count ? Number(value) : NaN;
 }
 
-function renderList(items, focus, selection) {
-    items.forEach(({ lines }, i) => {
+function renderList(items, printItem, focus, tags) {
+    let lineCount = 0;
+    items.forEach((item, i) => {
+        const lines = printItem(item, tags.has(i)).split('\n');
+        lineCount += lines.length;
         const focusCh = i === focus ? '-' : ' ';
-        const selectCh = selection.has(i) ? '*' : ' ';
-        const prefix = `${focusCh}[${selectCh}] `;
+        const tagCh = tags.has(i) ? '*' : ' ';
+        const prefix = `${focusCh}[${tagCh}] `;
         const dumb = ' '.repeat(prefix.length);
         cout.write(`${prefix}${lines[0]}\n`);
         lines.slice(1).forEach((line) => {
             cout.write(`${dumb}${line}\n`);
         });
     });
+    return lineCount;
 }
 
 function clearList(lineCount) {
@@ -58,12 +52,13 @@ const defaultHandlers = {
 };
 
 function printList(items, options = {}) {
-    const { objects, lineCount } = makeInfo(items);
+    const printItem = options.printItem || String;
+    let lineCount = 0;
     let focus = Number(options.focus) || 0;
     const tags = new Set(options.tags);
     const refresh = () => {
         clearList(lineCount);
-        renderList(objects, focus, tags);
+        lineCount = renderList(items, printItem, focus, tags);
     };
     const setFocus = (value) => {
         const newFocus = clampIndex(value, items.length);
@@ -102,7 +97,7 @@ function printList(items, options = {}) {
         };
         cin.setRawMode(true);
         cin.on('keypress', handle);
-        renderList(objects, focus, tags);
+        lineCount = renderList(items, printItem, focus, tags);
     });
 }
 
