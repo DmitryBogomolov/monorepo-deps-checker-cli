@@ -15,7 +15,7 @@ function clampIndex(value, count) {
 function renderList(items, printItem, focus, tags) {
     let lineCount = 0;
     items.forEach((item, i) => {
-        const lines = printItem(item, tags.has(i)).split('\n');
+        const lines = printItem(item, i, tags.has(i)).split('\n');
         lineCount += lines.length;
         const focusCh = i === focus ? '-' : ' ';
         const tagCh = tags.has(i) ? '*' : ' ';
@@ -71,11 +71,11 @@ function mutlipleTags(tags) {
 }
 
 function singleTag(tags) {
-    let item = tags >= 0 ? Number(tags) : null;
+    let item = tags >= 0 ? Number(tags) : NaN;
     return {
         set(value) {
             if (item === value) {
-                item = null;
+                item = NaN;
             } else {
                 item = value;
             }
@@ -92,7 +92,7 @@ function singleTag(tags) {
 function printList(items, options = {}) {
     const printItem = options.printItem || String;
     let lineCount = 0;
-    let itemIndex = Number(options.index) || 0;
+    let itemIndex = 0 <= options.index && options.index < items.length ? Number(options.index) : 0;
     const tags = (options.singleTag ? singleTag : mutlipleTags)(options.tags);
     const refresh = () => {
         clearList(lineCount);
