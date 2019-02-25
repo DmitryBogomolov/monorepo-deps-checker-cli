@@ -69,57 +69,70 @@ Promise.resolve()
     //     });
     // })
     .then(() => {
-        let moduleIndex = -1;
+        let currentModuleIndex = -1;
         const moduleVersions = new Map();
-        let done = false;
         const printModules = () => {
             return printList(modulesConflicts, {
-                printItem: (item, isTagged) => {
-                    return `${item.moduleName} (${item.items.length})`;
+                index: currentModuleIndex,
+                tags: moduleVersions.keys(),
+                printItem: (item, i, isTagged) => {
+                    const version = moduleVersions.get(i);
+                    const postfix = version >= 0 ? `(${version})` : '';
+                    return `${item.moduleName} (${item.items.length}) ${postfix}`;
                 },
                 handlers: {
-                    'space': ({ focus, close }) => {
-                        moduleIndex = focus;
+                    'space': ({ close }) => {
                         close();
                     },
-                    'enter': () => {
-                        done = true;
-                        close();
+                    'return': ({ close }) => {
+                        close(true);
                     },
                 },
-            }).then(() => {
-                if (!done) {
+            }).then(({ status, index }) => {
+                if (!status) {
+                    currentModuleIndex = index;
                     return printItems();
                 }
             });
         };
         const printItems = () => {
-            const version = moduleVersions.get(moduleIndex);
-            let tag = version >= 0 ? version : -1;
-            return printList(modulesConflicts[moduleIndex].items, {
-                focus: tag >= 0 ? tag : undefined,
-                tags: version >= 0 ? [version] : [],
+            const version = moduleVersions.get(currentModuleIndex);
+            return printList(modulesConflicts[currentModuleIndex].items, {
+                index: version,
+                tags: version,
+                singleTag: true,
                 printItem: (item, isTagged) => {
-                    return `${item.version} ${item.packages.length}`;
+                    const line = `${item.version} (${item.packages.length})`;
+                    const lines = item.packages
+                        .map((pack) => `  ${pack.packageName}:${pack.section}`);
+                    return [line, ...lines].join('\n');
                 },
                 handlers: {
-                    'space': ({ focus, toggleTag }) => {
-                        toggleTag(tag);
-                        toggleTag(focus);
-                        tag = focus;
-                    },
                     'backspace': ({ close }) => {
-                        if (tag >= 0) {
-                            moduleVersions.set(moduleIndex, tag);
-                        } else {
-                            moduleVersions.delete(moduleIndex);
-                        }
-                        close();
+                        close(false);
+                    },
+                    'return': ({ close }) => {
+                        close(true);
                     },
                 },
-            }).then(printModules);
+            }).then(({ status, tags }) => {
+                if (status) {
+                    if (tags >= 0) {
+                        moduleVersions.set(currentModuleIndex, tags);
+                    } else {
+                        moduleVersions.delete(currentModuleIndex);
+                    }
+                }
+                return printModules();
+            });
         };
-        return printModules();
+        return printModules().then(() => {
+            console.log('VERSIONS');
+            moduleVersions.forEach((versionIndex, moduleIndex) => {
+                const conflict = modulesConflicts[moduleIndex];
+                console.log(conflict.moduleName, conflict.items[versionIndex].version);
+            });
+        });
     })
     .catch((err) => {
         console.error(err);
