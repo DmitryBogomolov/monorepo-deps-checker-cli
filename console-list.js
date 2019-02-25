@@ -37,40 +37,78 @@ function clearList(lineCount) {
 }
 
 const defaultHandlers = {
-    'up': ({ focus, setFocus }) => {
-        setFocus(focus - 1);
+    'up': ({ index, setIndex }) => {
+        setIndex(index - 1);
     },
-    'down': ({ focus, setFocus }) => {
-        setFocus(focus + 1);
+    'down': ({ index, setIndex }) => {
+        setIndex(index + 1);
     },
-    'space': ({ focus, toggleTag }) => {
-        toggleTag(focus);
+    'space': ({ index, setTag }) => {
+        setTag(index);
     },
     'return': ({ close }) => {
         close();
     },
 };
 
+function mutlipleTags(tags) {
+    const items = new Set(tags);
+    return {
+        set(value) {
+            if (items.has(value)) {
+                items.delete(value);
+            } else {
+                items.add(value);
+            }
+        },
+        has(value) {
+            return items.has(value);
+        },
+        data() {
+            return Array.from(items).sort();
+        },
+    };
+}
+
+function singleTag(tags) {
+    let item = tags >= 0 ? Number(tags) : null;
+    return {
+        set(value) {
+            if (item === value) {
+                item = null;
+            } else {
+                item = value;
+            }
+        },
+        has(value) {
+            return item === value;
+        },
+        data() {
+            return item;
+        },
+    };
+}
+
 function printList(items, options = {}) {
     const printItem = options.printItem || String;
     let lineCount = 0;
-    let focus = Number(options.focus) || 0;
-    const tags = new Set(options.tags);
+    let itemIndex = Number(options.index) || 0;
+    const tags = (options.singleTag ? singleTag : mutlipleTags)(options.tags);
     const refresh = () => {
         clearList(lineCount);
-        lineCount = renderList(items, printItem, focus, tags);
+        lineCount = renderList(items, printItem, itemIndex, tags);
     };
-    const setFocus = (value) => {
-        const newFocus = clampIndex(value, items.length);
-        if (isFinite(newFocus) && newFocus !== focus) {
-            focus = newFocus;
+    const setIndex = (arg) => {
+        const newIndex = Number(arg);
+        if (newIndex !== itemIndex && 0 <= newIndex && newIndex < items.length) {
+            itemIndex = newIndex;
             refresh();
         }
     };
-    const toggleTag = (value) => {
-        const tag = clampIndex(value, items.length);
-        if (isFinite(tag)) {
-            tags[tags.has(tag) ? 'delete' : 'add'](tag);
+    const setTag = (arg) => {
+        const newIndex = Number(arg);
+        if (0 <= newIndex && newIndex < items.length) {
+            tags.set(newIndex);
             refresh();
         }
     };
@@ -80,9 +118,9 @@ function printList(items, options = {}) {
             cin.setRawMode(false);
             clearList(lineCount);
         };
-        const close = () => {
+        const close = (status) => {
             dispose();
-            resolve(tags);
+            resolve({ status, index: itemIndex, tags: tags.data() });
         };
         const handlers = Object.assign({}, defaultHandlers, options.handlers);
         const handle = (key, data) => {
@@ -93,12 +131,12 @@ function printList(items, options = {}) {
             }
             const handler = handlers[data.name];
             if (handler) {
-                handler({ focus, setFocus, toggleTag, close });
+                handler({ index: itemIndex, setIndex, setTag, close });
             }
         };
         cin.setRawMode(true);
         cin.on('keypress', handle);
-        lineCount = renderList(items, printItem, focus, tags);
+        lineCount = renderList(items, printItem, itemIndex, tags);
     });
 }
 
