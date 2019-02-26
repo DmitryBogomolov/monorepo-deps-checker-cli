@@ -58,16 +58,20 @@ const modulesConflicts = [
 ];
 
 Promise.resolve()
-    // .then(() => {
-    //     return printList(packagesConflicts, {
-    //         printItem: (item, isTagged) => {
-    //             const postfix = isTagged ? `*${item.targetVersion}*` : `${item.version} -> ${item.targetVersion}`;
-    //             return `${item.packageName}:${item.section} ${item.moduleName}: ${postfix}`;
-    //         },
-    //     }).then((tags) => {
-    //         console.log('Packages', tags);
-    //     });
-    // })
+    .then(() => {
+        return printList(packagesConflicts, {
+            printItem: (item, i, isTagged) => {
+                const postfix = isTagged ? `*${item.targetVersion}*` : `${item.version} -> ${item.targetVersion}`;
+                return `${item.packageName}:${item.section} ${item.moduleName}: ${postfix}`;
+            },
+        }).then(({ tags }) => {
+            console.log('PACKAGES');
+            tags.forEach((tag) => {
+                const conflict = packagesConflicts[tag];
+                console.log(conflict.packageName, conflict.targetVersion);
+            });
+        });
+    })
     .then(() => {
         let currentModuleIndex = -1;
         const moduleVersions = new Map();
@@ -76,20 +80,17 @@ Promise.resolve()
                 index: currentModuleIndex,
                 tags: moduleVersions.keys(),
                 printItem: (item, i, isTagged) => {
-                    const version = moduleVersions.get(i);
-                    const postfix = version >= 0 ? `(${version})` : '';
+                    const versionIndex = moduleVersions.get(i);
+                    const postfix = versionIndex >= 0 ?
+                        `-> ${modulesConflicts[currentModuleIndex].items[versionIndex].version}`
+                        : '';
                     return `${item.moduleName} (${item.items.length}) ${postfix}`;
                 },
                 handlers: {
-                    'space': ({ close }) => {
-                        close();
-                    },
-                    'return': ({ close }) => {
-                        close(true);
-                    },
+                    'space': ({ close }) => close(1),
                 },
             }).then(({ status, index }) => {
-                if (!status) {
+                if (status) {
                     currentModuleIndex = index;
                     return printItems();
                 }
@@ -108,15 +109,10 @@ Promise.resolve()
                     return [line, ...lines].join('\n');
                 },
                 handlers: {
-                    'backspace': ({ close }) => {
-                        close(false);
-                    },
-                    'return': ({ close }) => {
-                        close(true);
-                    },
+                    'backspace': ({ close }) => close(1),
                 },
             }).then(({ status, tags }) => {
-                if (status) {
+                if (!status) {
                     if (tags >= 0) {
                         moduleVersions.set(currentModuleIndex, tags);
                     } else {
