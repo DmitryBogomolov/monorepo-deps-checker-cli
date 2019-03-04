@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 
 const check = require('monorepo-deps-checker');
-const printList = require('./console-list');
+const printList = require('cli-list-select');
 
 function resolvePackagesVersions(conflicts) {
     if (!conflicts.length) {
         return null;
     }
     return printList(conflicts, {
-        printItem: (item, i, isTagged) => {
-            const postfix = isTagged ? `*${item.targetVersion}*` : `${item.version} -> ${item.targetVersion}`;
+        printItem: (item, i, isFocused, isChecked) => {
+            const postfix = isChecked ? `*${item.targetVersion}*` : `${item.version} -> ${item.targetVersion}`;
             return `${item.packageName}:${item.section} ${item.moduleName}: ${postfix}`;
         },
-    }).then(({ tags }) => {
+    }).then(({ checks }) => {
         console.log('PACKAGES');
-        tags.forEach((tag) => {
+        checks.forEach((tag) => {
             const conflict = conflict[tag];
             console.log(`  ${conflict.packageName} ${conflict.targetVersion}`);
             conflict.resolve();
@@ -31,8 +31,8 @@ function resolveModulesVersions(conflicts) {
     const printModules = () => {
         return printList(conflicts, {
             index: currentModuleIndex,
-            tags: moduleVersions.keys(),
-            printItem: (item, i, isTagged) => {
+            checks: moduleVersions.keys(),
+            printItem: (item, i, isFocused, isChecked) => {
                 const versionIndex = moduleVersions.get(i);
                 const postfix = versionIndex >= 0 ?
                     `-> ${conflicts[currentModuleIndex].items[versionIndex].version}`
@@ -40,10 +40,10 @@ function resolveModulesVersions(conflicts) {
                 return `${item.moduleName} (${item.items.length}) ${postfix}`;
             },
             handlers: {
-                'space': ({ close }) => close(1),
+                'space': ({ end }) => end(1),
             },
-        }).then(({ status, index }) => {
-            if (status) {
+        }).then(({ note, index }) => {
+            if (note) {
                 currentModuleIndex = index;
                 return printItems();
             }
@@ -53,21 +53,21 @@ function resolveModulesVersions(conflicts) {
         const version = moduleVersions.get(currentModuleIndex);
         return printList(conflicts[currentModuleIndex].items, {
             index: version,
-            tags: version,
-            singleTag: true,
-            printItem: (item, isTagged) => {
+            checks: version,
+            singleCheck: true,
+            printItem: (item, i, isFocused, isChecked) => {
                 const line = `${item.version} (${item.packages.length})`;
                 const lines = item.packages
                     .map((pack) => `  ${pack.packageName}:${pack.section}`);
                 return [line, ...lines].join('\n');
             },
             handlers: {
-                'backspace': ({ close }) => close(1),
+                'backspace': ({ end }) => end(1),
             },
-        }).then(({ status, tags }) => {
-            if (!status) {
-                if (tags >= 0) {
-                    moduleVersions.set(currentModuleIndex, tags);
+        }).then(({ note, checks }) => {
+            if (!note) {
+                if (checks >= 0) {
+                    moduleVersions.set(currentModuleIndex, checks);
                 } else {
                     moduleVersions.delete(currentModuleIndex);
                 }
