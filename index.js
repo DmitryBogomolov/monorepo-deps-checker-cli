@@ -5,6 +5,31 @@ const printList = require('cli-list-select');
 const commander = require('commander');
 const packageInfo = require('./package');
 
+function showPackagesConflicts(conflicts) {
+    if (!conflicts.length) {
+        console.log('No conflicts');
+        return;
+    }
+    console.log(conflicts.length);
+    conflicts.forEach((conflict) => {
+        console.log(` ${conflict.packageName}:${conflict.section} ${conflict.moduleName} ${conflict.version} -> ${conflict.targetVersion}`)
+    });
+}
+
+function showModulesConflicts(conflicts) {
+    if (!conflicts.length) {
+        console.log('No conflicts');
+        return;
+    }
+    console.log(conflicts.length);
+    conflicts.forEach((conflict) => {
+        console.log(` ${conflict.moduleName} (${conflict.items.length})`);
+        conflict.items.forEach((item) => {
+            console.log(`   ${item.version} (${item.packages.length})`);
+        });
+    });
+}
+
 function resolvePackagesVersions(conflicts) {
     if (!conflicts.length) {
         return null;
@@ -135,6 +160,19 @@ function resolveModulesVersions(conflicts) {
 //     },
 // ];
 
+function selectCallbacks(options) {
+    if (options.printPackages) {
+        return [showPackagesConflicts, null];
+    }
+    if (options.printModules) {
+        return [null, showModulesConflicts];
+    }
+    return [
+        options.skipPackages ? null : resolvePackagesVersions,
+        options.skipModules ? null : resolveModulesVersions,
+    ];
+}
+
 commander
     .version(packageInfo.version)
     .option('--print-packages', 'Print packages conflicts')
@@ -152,14 +190,9 @@ if (!commander.args.length) {
 }
 
 const pathToDir = commander.args[0];
+const [processPackages, processModules] = selectCallbacks(commander);
 
-console.log(commander);
-
-check(
-    pathToDir,
-    commander.skipPackages ? null : resolvePackagesVersions,
-    commander.skipModules ? null : resolveModulesVersions
-).then(
+check(pathToDir, processPackages, processModules).then(
     () => {
         console.log('DONE');
     },
