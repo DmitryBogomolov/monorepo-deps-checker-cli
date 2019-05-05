@@ -2,6 +2,8 @@
 
 const check = require('monorepo-deps-checker');
 const printList = require('cli-list-select');
+const commander = require('commander');
+const packageInfo = require('./package');
 
 function resolvePackagesVersions(conflicts) {
     if (!conflicts.length) {
@@ -133,7 +135,23 @@ function resolveModulesVersions(conflicts) {
 //     },
 // ];
 
-check(process.argv[2], resolvePackagesVersions, resolveModulesVersions).then(
+commander
+    .version(packageInfo.version)
+    .option('--skip-packages', 'Skip packages conflicts')
+    .option('--skip-modules', 'Skip modules conflicts')
+    .parse(process.argv);
+
+if (!commander.args.length) {
+    commander.help();
+}
+
+const pathToDir = commander.args[0];
+
+check(
+    pathToDir,
+    commander.skipPackages ? null : resolvePackagesVersions,
+    commander.skipModules ? null : resolveModulesVersions
+).then(
     () => {
         console.log('DONE');
     },

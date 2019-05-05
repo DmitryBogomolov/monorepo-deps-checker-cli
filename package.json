@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "cli-list-select": "^0.0.4",
+    "commander": "^2.20.0",
     "monorepo-deps-checker": "^0.0.4"
   }
 }
