@@ -137,8 +137,14 @@ function resolveModulesVersions(conflicts) {
 
 commander
     .version(packageInfo.version)
+    .option('--print-packages', 'Print packages conflicts')
+    .option('--print-modules', 'Print modules conflicts')
     .option('--skip-packages', 'Skip packages conflicts')
     .option('--skip-modules', 'Skip modules conflicts')
+    .option('--resolve-packages', 'Resolve all packages conflicts')
+    .option('--take-new-module', 'Resolve module conflicts with newest version')
+    .option('--take-frequent-module', 'Resolve module conflicts with most frequent version')
+    .option('--ignore [ignoredModules]', 'Ignore list for modules', arg => arg.split(','))
     .parse(process.argv);
 
 if (!commander.args.length) {
@@ -146,6 +152,8 @@ if (!commander.args.length) {
 }
 
 const pathToDir = commander.args[0];
+
+console.log(commander);
 
 check(
     pathToDir,
