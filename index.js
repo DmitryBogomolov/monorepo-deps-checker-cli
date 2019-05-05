@@ -28,7 +28,16 @@ function resolveModulesVersions(conflicts) {
     }
     let currentModuleIndex = -1;
     const moduleVersions = new Map();
-    const printModules = () => {
+    return printModules().then(() => {
+        console.log('VERSIONS');
+        moduleVersions.forEach((versionIndex, moduleIndex) => {
+            const conflict = conflicts[moduleIndex];
+            console.log(` ${conflict.moduleName} ${conflict.items[versionIndex].version}`);
+            conflict.resolve(versionIndex);
+        });
+    });
+
+    function printModules() {
         return printList(conflicts, {
             index: currentModuleIndex,
             checks: moduleVersions.keys(),
@@ -48,8 +57,9 @@ function resolveModulesVersions(conflicts) {
                 return printItems();
             }
         });
-    };
-    const printItems = () => {
+    }
+
+    function printItems() {
         const version = moduleVersions.get(currentModuleIndex);
         return printList(conflicts[currentModuleIndex].items, {
             index: version,
@@ -74,15 +84,7 @@ function resolveModulesVersions(conflicts) {
             }
             return printModules();
         });
-    };
-    return printModules().then(() => {
-        console.log('VERSIONS');
-        moduleVersions.forEach((versionIndex, moduleIndex) => {
-            const conflict = conflicts[moduleIndex];
-            console.log(` ${conflict.moduleName} ${conflict.items[versionIndex].version}`);
-            conflict.resolve(versionIndex);
-        });
-    });
+    }
 }
 
 // const packagesConflicts = [
