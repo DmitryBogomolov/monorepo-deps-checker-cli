@@ -5,7 +5,7 @@ const printList = require('cli-list-select');
 const commander = require('commander');
 const packageInfo = require('./package');
 
-function showPackagesConflicts(conflicts) {
+function showPackages(conflicts) {
     if (!conflicts.length) {
         console.log('No conflicts');
         return;
@@ -16,7 +16,7 @@ function showPackagesConflicts(conflicts) {
     });
 }
 
-function showModulesConflicts(conflicts) {
+function showModules(conflicts) {
     if (!conflicts.length) {
         console.log('No conflicts');
         return;
@@ -30,7 +30,11 @@ function showModulesConflicts(conflicts) {
     });
 }
 
-function resolvePackagesVersions(conflicts) {
+function forceResolvePackages(conflicts) {
+    conflicts.forEach(conflict => conflict.resolve());
+}
+
+function promptResolvePackages(conflicts) {
     if (!conflicts.length) {
         return null;
     }
@@ -49,7 +53,35 @@ function resolvePackagesVersions(conflicts) {
     });
 }
 
-function resolveModulesVersions(conflicts) {
+function resolveModulesByFrequent(conflicts) {
+    conflicts.forEach(conflict => conflict.resolve(0));
+}
+
+function resolveModulesByNew(conflicts) {
+    conflicts.forEach((conflict) => {
+        const list = conflict.items.map(mapItem);
+        list.sort(compareVersions);
+        const choice = list[0].index;
+        conflict.resolve(choice);
+    });
+
+    function mapItem(item, index) {
+        return { index, version: item.version.match(/(\d+)/g) || [] };
+    }
+
+    function compareVersions(version1, version2) {
+        const len = Math.min(version1.length, version2.length);
+        for (let i = 0; i < len; ++i) {
+            const d = version2[i] - version1[i];
+            if (d !== 0) {
+                return d;
+            }
+        }
+        return version2.length - version1.length;
+    }
+}
+
+function promptResolveModules(conflicts) {
     if (!conflicts.length) {
         return null;
     }
@@ -162,15 +194,30 @@ function resolveModulesVersions(conflicts) {
 
 function selectCallbacks(options) {
     if (options.printPackages) {
-        return [showPackagesConflicts, null];
+        return [showPackages, null];
     }
     if (options.printModules) {
-        return [null, showModulesConflicts];
+        return [null, showModules];
     }
-    return [
-        options.skipPackages ? null : resolvePackagesVersions,
-        options.skipModules ? null : resolveModulesVersions,
-    ];
+    let resolvePackages;
+    if (options.skipPackages) {
+        resolvePackages = null;
+    } else if (options.resolvePackages) {
+        resolvePackages = forceResolvePackages;
+    } else {
+        resolvePackages = promptResolvePackages;
+    }
+    let resolveModules;
+    if (options.skipModules) {
+        resolveModules = null;
+    } else if (options.takeNewModule) {
+        resolveModules = resolveModulesByNew;
+    } else if (options.takeFrequentModule) {
+        resolveModules = resolveModulesByFrequent;
+    } else {
+        resolveModules = promptResolveModules;
+    }
+    return [resolvePackages, resolveModules];
 }
 
 commander
