@@ -26,7 +26,7 @@
     "mdc": "./index.js"
   },
   "dependencies": {
-    "cli-list-select": "^0.0.3",
-    "monorepo-deps-checker": "^0.0.3"
+    "cli-list-select": "^0.0.4",
+    "monorepo-deps-checker": "^0.0.4"
   }
 }
