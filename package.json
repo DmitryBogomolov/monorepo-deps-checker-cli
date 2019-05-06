@@ -1,6 +1,6 @@
 {
   "name": "monorepo-deps-checker-cli",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Command line interface for 'monorepo-deps-checker'",
   "main": "index.js",
   "scripts": {},
