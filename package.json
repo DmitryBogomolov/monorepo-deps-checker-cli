@@ -3,14 +3,16 @@
   "version": "0.0.2",
   "description": "Command line interface for 'monorepo-deps-checker'",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "lint": "eslint ."
+  },
   "author": "Dmitry Bogomolov",
   "bugs": {
     "url": "https://github.com/DmitryBogomolov/monorepo-deps-checker-cli/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DmitryBogomolov/monorepo-deps-checker-c;i.git"
+    "url": "git+https://github.com/DmitryBogomolov/monorepo-deps-checker-cli.git"
   },
   "keywords": [
     "monorepo",
@@ -29,5 +31,8 @@
     "cli-list-select": "^0.0.4",
     "commander": "^2.20.0",
     "monorepo-deps-checker": "^0.0.4"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0"
   }
 }
