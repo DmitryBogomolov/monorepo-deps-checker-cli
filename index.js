@@ -5,6 +5,8 @@ const printList = require('cli-list-select');
 const commander = require('commander');
 const packageInfo = require('./package');
 
+function noop() { }
+
 function showPackages(conflicts) {
     if (!conflicts.length) {
         console.log('No conflicts');
@@ -196,33 +198,68 @@ function resolveModulesByPrompt(conflicts) {
 //     },
 // ];
 
+function combineFilter(filter, process) {
+    return conflicts => process(filter(conflicts));
+}
+
+function ignorePackages(list, conflicts) {
+    const set = new Set(list);
+    return conflicts.filter(conflict => !set.has(conflict.packageName));
+}
+
+function ignoreModules(list, conflicts) {
+    const set = new Set(list);
+    return conflicts.filter(conflict => !set.has(conflict.moduleName));
+}
+
+function ignoreModulePackages(list, conflicts) {
+    const set = new Set(list);
+    return conflicts.map((conflict) => {
+        const items = conflict.items.map((item) => {
+            const packages = item.packages.filter(obj => !set.has(obj.packageName));
+            return Object.assign({}, item, { packages });
+        });
+        return Object.assign({}, conflict, { items });
+    });
+}
+
 function selectPackagesProcessor(options) {
+    let process;
     if (options.skipPackages) {
-        return null;
+        process = noop;
+    } else if (options.print) {
+        process = showPackages;
+    } else if (options.resolvePackages) {
+        process = resolveAllPackages;
+    } else {
+        process = resolvePackagesByPrompt;
     }
-    if (options.print) {
-        return showPackages;
+    if (options.ignorePackages) {
+        process = combineFilter(ignorePackages.bind(null, options.ignorePackages), process);
     }
-    if (options.resolvePackages) {
-        return resolveAllPackages;
-    }
-    return resolvePackagesByPrompt;
+    return process;
 }
 
 function selectModulesProcessor(options) {
+    let process;
     if (options.skipModules) {
-        return null;
+        process = noop;
+    } else if (options.print) {
+        process = showModules;
+    } else if (options.takeNewModule) {
+        process = resolveModulesByNew;
+    } else if (options.takeFrequentModule) {
+        process = resolveModulesByFrequent;
+    } else {
+        process = resolveModulesByPrompt;
     }
-    if (options.print) {
-        return showModules;
+    if (options.ignoreModules) {
+        process = combineFilter(ignoreModules.bind(null, options.ignoreModules), process);
     }
-    if (options.takeNewModule) {
-        return resolveModulesByNew;
+    if (options.ignorePackages) {
+        process = combineFilter(ignoreModulePackages.bind(null, options.ignorePackages), process);
     }
-    if (options.takeFrequentModule) {
-        return resolveModulesByFrequent;
-    }
-    return resolveModulesByPrompt;
+    return process;
 }
 
 commander
