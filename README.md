@@ -15,11 +15,24 @@ npm i monorepo-deps-checker-cli
 Provides command line interface for **monorepo-deps-checker**.
 
 ```bash
-mdc --help
+mdc [options]
 ```
 
-By default assumes that monorepo is in current directory. Other directory can be provided.
+Target repo is assumed to be in current directory. Another directory can be provided with the **dir** option.
 
 ```bash
 mdc --dir path/to/repo
 ```
+
+Found conflicts are resolved via command line prompt in interactive mode. Use options to resolve conflicts automatically (without prompt).
+
+Option | Description
+-|-
+print | print conflicts (without resolving)
+skip-packages | skip packages conflicts
+skip-modules | skip modules conflicts
+resolve-packages | resolve packages conflicts
+take-new-module | resolve module conflicts with newest version
+take-frequent-module | resolve module conflicts with most frequent version
+ignore-packages | ignored packages (comma separated)
+ignore-modules | ignored modules (comma separated)
