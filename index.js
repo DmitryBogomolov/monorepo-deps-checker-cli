@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+/* eslint-disable no-console */
+
 const check = require('monorepo-deps-checker');
 const printList = require('cli-list-select');
 const commander = require('commander');
@@ -14,7 +16,7 @@ function showPackages(conflicts) {
     }
     console.log(conflicts.length);
     conflicts.forEach((conflict) => {
-        console.log(` ${conflict.packageName}:${conflict.section} ${conflict.moduleName} ${conflict.version} -> ${conflict.targetVersion}`)
+        console.log(` ${conflict.packageName}:${conflict.section} ${conflict.moduleName} ${conflict.version} -> ${conflict.targetVersion}`);
     });
 }
 
@@ -106,7 +108,7 @@ function resolveModulesByPrompt(conflicts) {
         return printList(conflicts, {
             index: currentModuleIndex,
             checks: moduleVersions.keys(),
-            printItem: (item, i, isFocused, isChecked) => {
+            printItem: (item, i) => {
                 const versionIndex = moduleVersions.get(i);
                 const postfix = versionIndex >= 0 ?
                     `-> ${conflicts[currentModuleIndex].items[versionIndex].version}`
@@ -130,7 +132,7 @@ function resolveModulesByPrompt(conflicts) {
             index: version,
             checks: version,
             singleCheck: true,
-            printItem: (item, i, isFocused, isChecked) => {
+            printItem: (item) => {
                 const line = `${item.version} (${item.packages.length})`;
                 const lines = item.packages
                     .map((pack) => `  ${pack.packageName}:${pack.section}`);
