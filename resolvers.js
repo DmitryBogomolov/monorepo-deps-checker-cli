@@ -22,9 +22,17 @@ function resolvePackageConflicts(conflicts) {
     });
 }
 
+function getPackageDesc(conflict) {
+    return `${conflict.packageName}:${conflict.section} ${conflict.moduleName}`;
+}
+
+function getPackageVersionDesc(conflict) {
+    return `${conflict.version} -> ${conflict.targetVersion}`;
+}
+
 function showAllPackages(conflicts) {
     conflicts.forEach((conflict) => {
-        console.log(` ${conflict.packageName}:${conflict.section} ${conflict.moduleName} ${conflict.version} -> ${conflict.targetVersion}`);
+        console.log(` ${getPackageDesc(conflict)} ${getPackageVersionDesc(conflict)}`);
     });
     return [];
 }
@@ -36,8 +44,8 @@ function selectAllPackages(conflicts) {
 function selectPackagesByPrompt(conflicts) {
     return printList(conflicts, {
         printItem: (item, i, isFocused, isChecked) => {
-            const postfix = isChecked ? `*${item.targetVersion}*` : `${item.version} -> ${item.targetVersion}`;
-            return `${item.packageName}:${item.section} ${item.moduleName}: ${postfix}`;
+            const postfix = isChecked ? `*${item.targetVersion}*` : getPackageVersionDesc(item);
+            return `${getPackageDesc(item)}: ${postfix}`;
         },
     }).then(({ checks }) => checks.map(tag => conflicts[tag]));
 }
@@ -53,11 +61,19 @@ function resolveModulesConflicts(list) {
     });
 }
 
+function getModuleDesc(conflict) {
+    return `${conflict.moduleName} (${conflict.items.length})`;
+}
+
+function getModuleVersionDesc(item) {
+    return `${item.version} (${item.packages.length})`;
+}
+
 function showAllModules(conflicts) {
     conflicts.forEach((conflict) => {
-        console.log(` ${conflict.moduleName} (${conflict.items.length})`);
+        console.log(` ${getModuleDesc(conflict)}`);
         conflict.items.forEach((item) => {
-            console.log(`   ${item.version} (${item.packages.length})`);
+            console.log(`   ${getModuleVersionDesc(item)}`);
         });
     });
     return [];
@@ -115,7 +131,7 @@ function selectModulesByPrompt(conflicts) {
                 const postfix = versionIndex >= 0 ?
                     `-> ${conflicts[currentModuleIndex].items[versionIndex].version}`
                     : '';
-                return `${item.moduleName} (${item.items.length}) ${postfix}`;
+                return `${getModuleDesc(item)} ${postfix}`;
             },
             handlers: {
                 'space': closeList,
@@ -135,9 +151,8 @@ function selectModulesByPrompt(conflicts) {
             checks: version,
             singleCheck: true,
             printItem: (item) => {
-                const line = `${item.version} (${item.packages.length})`;
-                const lines = item.packages
-                    .map(pack => `  ${pack.packageName}:${pack.section}`);
+                const line = getModuleVersionDesc(item);
+                const lines = item.packages.map(pack => `  ${pack.packageName}:${pack.section}`);
                 return [line, ...lines].join('\n');
             },
             handlers: {
