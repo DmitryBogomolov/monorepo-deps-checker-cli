@@ -125,7 +125,7 @@ function selectModulesByPrompt(conflicts) {
     function printModules() {
         return printList(conflicts, {
             index: currentModuleIndex,
-            checks: moduleVersions.keys(),
+            checks: Array.from(moduleVersions.keys()),
             printItem: (item, i) => {
                 const versionIndex = moduleVersions.get(i);
                 const postfix = versionIndex >= 0 ?
