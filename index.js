@@ -114,14 +114,14 @@ function selectModulesProcessor(options) {
 commander
     .version(packageInfo.version)
     .option('--dir [dir]', 'repo directory')
-    .option('--print', 'print conflicts')
+    .option('--print', 'print conflicts (without resolving)')
     .option('--skip-packages', 'skip packages conflicts')
     .option('--skip-modules', 'skip modules conflicts')
-    .option('--resolve-packages', 'resolve all packages conflicts')
+    .option('--resolve-packages', 'resolve packages conflicts')
     .option('--take-new-module', 'resolve module conflicts with newest version')
     .option('--take-frequent-module', 'resolve module conflicts with most frequent version')
-    .option('--ignore-packages [packages]', 'ignored packages', arg => arg.split(','))
-    .option('--ignore-modules [modules]', 'ignored modules', arg => arg.split(','))
+    .option('--ignore-packages [packages]', 'ignored packages (comma separated)', arg => arg.split(','))
+    .option('--ignore-modules [modules]', 'ignored modules (comma separated)', arg => arg.split(','))
     .parse(process.argv);
 
 const pathToDir = commander.dir || process.cwd();
@@ -130,7 +130,7 @@ const processModules = selectModulesProcessor(commander);
 
 check(pathToDir, processPackages, processModules).then(
     () => {
-        console.log('DONE');
+        process.exit(0);
     },
     (err) => {
         console.error(err);
