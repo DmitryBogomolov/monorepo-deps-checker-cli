@@ -67,7 +67,7 @@ function resolveModulesByNew(conflicts) {
         return { index, version: item.version.match(/(\d+)/g) || [] };
     }
 
-    function compareVersions(version1, version2) {
+    function compareVersions({ version: version1 }, { version: version2 }) {
         const len = Math.min(version1.length, version2.length);
         for (let i = 0; i < len; ++i) {
             const d = version2[i] - version1[i];
