@@ -230,7 +230,8 @@ commander
     .option('--resolve-packages', 'resolve all packages conflicts')
     .option('--take-new-module', 'resolve module conflicts with newest version')
     .option('--take-frequent-module', 'resolve module conflicts with most frequent version')
-    .option('--ignore [ignoredModules]', 'ignore list for modules', arg => arg.split(','))
+    .option('--ignore-packages [packages]', 'ignored packages', arg => arg.split(','))
+    .option('--ignore-modules [modules]', 'ignored modules', arg => arg.split(','))
     .parse(process.argv);
 
 const pathToDir = commander.dir || process.cwd();
