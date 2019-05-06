@@ -5,20 +5,26 @@ const {
 } = require('./resolvers');
 
 describe('resolvers', () => {
+    beforeAll(() => {
+        console.log = () => {}; // eslint-disable-line no-console
+    });
+
     describe('resolveAllPackages', () => {
         it('resolve', () => {
             const mock1 = jest.fn();
             const mock2 = jest.fn();
             const mock3 = jest.fn();
-            resolveAllPackages([
+            const promise = resolveAllPackages([
                 { resolve: mock1 },
                 { resolve: mock2 },
                 { resolve: mock3 },
             ]);
 
-            expect(mock1).toBeCalledWith();
-            expect(mock2).toBeCalledWith();
-            expect(mock3).toBeCalledWith();
+            return promise.then(() => {
+                expect(mock1).toBeCalledWith();
+                expect(mock2).toBeCalledWith();
+                expect(mock3).toBeCalledWith();
+            });
         });
     });
 
@@ -27,15 +33,26 @@ describe('resolvers', () => {
             const mock1 = jest.fn();
             const mock2 = jest.fn();
             const mock3 = jest.fn();
-            resolveModulesByFrequent([
-                { resolve: mock1 },
-                { resolve: mock2 },
-                { resolve: mock3 },
+            const promise = resolveModulesByFrequent([
+                {
+                    resolve: mock1,
+                    items: [{}],
+                },
+                {
+                    resolve: mock2,
+                    items: [{}],
+                },
+                {
+                    resolve: mock3,
+                    items: [{}],
+                },
             ]);
 
-            expect(mock1).toBeCalledWith(0);
-            expect(mock2).toBeCalledWith(0);
-            expect(mock3).toBeCalledWith(0);
+            return promise.then(() => {
+                expect(mock1).toBeCalledWith(0);
+                expect(mock2).toBeCalledWith(0);
+                expect(mock3).toBeCalledWith(0);
+            });
         });
     });
 
@@ -43,7 +60,7 @@ describe('resolvers', () => {
         it('resolve', () => {
             const mock1 = jest.fn();
             const mock2 = jest.fn();
-            resolveModulesByNew([
+            const promise = resolveModulesByNew([
                 {
                     resolve: mock1,
                     items: [
@@ -61,8 +78,10 @@ describe('resolvers', () => {
                 },
             ]);
 
-            expect(mock1).toBeCalledWith(1);
-            expect(mock2).toBeCalledWith(0);
+            return promise.then(() => {
+                expect(mock1).toBeCalledWith(1);
+                expect(mock2).toBeCalledWith(0);
+            });
         });
     });
 });

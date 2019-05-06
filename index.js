@@ -6,7 +6,6 @@ const check = require('monorepo-deps-checker');
 const commander = require('commander');
 const packageInfo = require('./package');
 const {
-    noop,
     showPackages,
     showModules,
     resolveAllPackages,
@@ -66,6 +65,8 @@ const {
 //         ]
 //     },
 // ];
+
+function noop() { }
 
 function combineFilter(filter, process) {
     return conflicts => process(filter(conflicts));
