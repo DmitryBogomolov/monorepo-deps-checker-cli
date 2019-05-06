@@ -30,11 +30,11 @@ function showModules(conflicts) {
     });
 }
 
-function forceResolvePackages(conflicts) {
+function resolveAllPackages(conflicts) {
     conflicts.forEach(conflict => conflict.resolve());
 }
 
-function promptResolvePackages(conflicts) {
+function resolvePackagesByPrompt(conflicts) {
     if (!conflicts.length) {
         return null;
     }
@@ -81,7 +81,7 @@ function resolveModulesByNew(conflicts) {
     }
 }
 
-function promptResolveModules(conflicts) {
+function resolveModulesByPrompt(conflicts) {
     if (!conflicts.length) {
         return null;
     }
@@ -200,9 +200,9 @@ function selectPackagesProcessor(options) {
         return showPackages;
     }
     if (options.resolvePackages) {
-        return forceResolvePackages;
+        return resolveAllPackages;
     }
-    return promptResolvePackages;
+    return resolvePackagesByPrompt;
 }
 
 function selectModulesProcessor(options) {
@@ -218,7 +218,7 @@ function selectModulesProcessor(options) {
     if (options.takeFrequentModule) {
         return resolveModulesByFrequent;
     }
-    return promptResolveModules;
+    return resolveModulesByPrompt;
 }
 
 commander
