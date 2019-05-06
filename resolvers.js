@@ -1,66 +1,94 @@
 /* eslint-disable no-console */
 const printList = require('cli-list-select');
 
-function noop() { }
-
-function showPackages(conflicts) {
+function resolve(name, conflicts, selectConflicts, resolveConflicts) {
+    console.log(`* ${name} *`);
     if (!conflicts.length) {
-        console.log('No conflicts');
-        return;
-    }
-    console.log(conflicts.length);
-    conflicts.forEach((conflict) => {
-        console.log(` ${conflict.packageName}:${conflict.section} ${conflict.moduleName} ${conflict.version} -> ${conflict.targetVersion}`);
-    });
-}
-
-function showModules(conflicts) {
-    if (!conflicts.length) {
-        console.log('No conflicts');
-        return;
-    }
-    console.log(conflicts.length);
-    conflicts.forEach((conflict) => {
-        console.log(` ${conflict.moduleName} (${conflict.items.length})`);
-        conflict.items.forEach((item) => {
-            console.log(`   ${item.version} (${item.packages.length})`);
-        });
-    });
-}
-
-function resolveAllPackages(conflicts) {
-    conflicts.forEach(conflict => conflict.resolve());
-}
-
-function resolvePackagesByPrompt(conflicts) {
-    if (!conflicts.length) {
+        console.log('no conflicts');
         return null;
     }
-    return printList(conflicts, {
-        printItem: (item, i, isFocused, isChecked) => {
-            const postfix = isChecked ? `*${item.targetVersion}*` : `${item.version} -> ${item.targetVersion}`;
-            return `${item.packageName}:${item.section} ${item.moduleName}: ${postfix}`;
-        },
-    }).then(({ checks }) => {
-        console.log('PACKAGES');
-        checks.forEach((tag) => {
-            const conflict = conflict[tag];
-            console.log(`  ${conflict.packageName} ${conflict.targetVersion}`);
-            conflict.resolve();
-        });
+    console.log(`conflicts (${conflicts.length})`);
+    return Promise.resolve(selectConflicts(conflicts)).then(resolveConflicts);
+}
+
+function resolvePackages(selectConflicts, conflicts) {
+    return resolve('PACKAGES', conflicts, selectConflicts, resolvePackageConflicts);
+}
+
+function resolvePackageConflicts(conflicts) {
+    conflicts.forEach((conflict) => {
+        console.log(`  ${conflict.packageName} ${conflict.targetVersion}`);
+        conflict.resolve();
     });
 }
 
-function resolveModulesByFrequent(conflicts) {
-    conflicts.forEach(conflict => conflict.resolve(0));
+function getPackageDesc(conflict) {
+    return `${conflict.packageName}:${conflict.section} ${conflict.moduleName}`;
 }
 
-function resolveModulesByNew(conflicts) {
+function getPackageVersionDesc(conflict) {
+    return `${conflict.version} -> ${conflict.targetVersion}`;
+}
+
+function showAllPackages(conflicts) {
     conflicts.forEach((conflict) => {
+        console.log(` ${getPackageDesc(conflict)} ${getPackageVersionDesc(conflict)}`);
+    });
+    return [];
+}
+
+function selectAllPackages(conflicts) {
+    return conflicts;
+}
+
+function selectPackagesByPrompt(conflicts) {
+    return printList(conflicts, {
+        printItem: (item, i, isFocused, isChecked) => {
+            const postfix = isChecked ? `*${item.targetVersion}*` : getPackageVersionDesc(item);
+            return `${getPackageDesc(item)}: ${postfix}`;
+        },
+    }).then(({ checks }) => checks.map(tag => conflicts[tag]));
+}
+
+function resolveModules(selectConflicts, conflicts) {
+    return resolve('MODULES', conflicts, selectConflicts, resolveModulesConflicts);
+}
+
+function resolveModulesConflicts(list) {
+    list.forEach(([conflict, choice]) => {
+        console.log(` ${conflict.moduleName} ${conflict.items[choice].version}`);
+        conflict.resolve(choice);
+    });
+}
+
+function getModuleDesc(conflict) {
+    return `${conflict.moduleName} (${conflict.items.length})`;
+}
+
+function getModuleVersionDesc(item) {
+    return `${item.version} (${item.packages.length})`;
+}
+
+function showAllModules(conflicts) {
+    conflicts.forEach((conflict) => {
+        console.log(` ${getModuleDesc(conflict)}`);
+        conflict.items.forEach((item) => {
+            console.log(`   ${getModuleVersionDesc(item)}`);
+        });
+    });
+    return [];
+}
+
+function selectModulesByFrequent(conflicts) {
+    return conflicts.map(conflict => [conflict, 0]);
+}
+
+function selectModulesByNew(conflicts) {
+    return conflicts.map((conflict) => {
         const list = conflict.items.map(mapItem);
         list.sort(compareVersions);
         const choice = list[0].index;
-        conflict.resolve(choice);
+        return [conflict, choice];
     });
 
     function mapItem(item, index) {
@@ -79,19 +107,15 @@ function resolveModulesByNew(conflicts) {
     }
 }
 
-function resolveModulesByPrompt(conflicts) {
-    if (!conflicts.length) {
-        return null;
-    }
+function selectModulesByPrompt(conflicts) {
     let currentModuleIndex = -1;
     const moduleVersions = new Map();
     return printModules().then(() => {
-        console.log('VERSIONS');
+        const result = [];
         moduleVersions.forEach((versionIndex, moduleIndex) => {
-            const conflict = conflicts[moduleIndex];
-            console.log(` ${conflict.moduleName} ${conflict.items[versionIndex].version}`);
-            conflict.resolve(versionIndex);
+            result.push([conflicts[moduleIndex], versionIndex]);
         });
+        return result;
     });
 
     function closeList({ end }) {
@@ -101,13 +125,13 @@ function resolveModulesByPrompt(conflicts) {
     function printModules() {
         return printList(conflicts, {
             index: currentModuleIndex,
-            checks: moduleVersions.keys(),
+            checks: Array.from(moduleVersions.keys()),
             printItem: (item, i) => {
                 const versionIndex = moduleVersions.get(i);
                 const postfix = versionIndex >= 0 ?
                     `-> ${conflicts[currentModuleIndex].items[versionIndex].version}`
                     : '';
-                return `${item.moduleName} (${item.items.length}) ${postfix}`;
+                return `${getModuleDesc(item)} ${postfix}`;
             },
             handlers: {
                 'space': closeList,
@@ -127,9 +151,8 @@ function resolveModulesByPrompt(conflicts) {
             checks: version,
             singleCheck: true,
             printItem: (item) => {
-                const line = `${item.version} (${item.packages.length})`;
-                const lines = item.packages
-                    .map((pack) => `  ${pack.packageName}:${pack.section}`);
+                const line = getModuleVersionDesc(item);
+                const lines = item.packages.map(pack => `  ${pack.packageName}:${pack.section}`);
                 return [line, ...lines].join('\n');
             },
             handlers: {
@@ -149,12 +172,11 @@ function resolveModulesByPrompt(conflicts) {
 }
 
 module.exports = {
-    noop,
-    showPackages,
-    showModules,
-    resolveAllPackages,
-    resolvePackagesByPrompt,
-    resolveModulesByNew,
-    resolveModulesByFrequent,
-    resolveModulesByPrompt,
+    showPackages: conflicts => resolvePackages(showAllPackages, conflicts),
+    showModules: conflicts => resolveModules(showAllModules, conflicts),
+    resolveAllPackages: conflicts => resolvePackages(selectAllPackages, conflicts),
+    resolvePackagesByPrompt: conflicts => resolvePackages(selectPackagesByPrompt, conflicts),
+    resolveModulesByNew: conflicts => resolveModules(selectModulesByNew, conflicts),
+    resolveModulesByFrequent: conflicts => resolveModules(selectModulesByFrequent, conflicts),
+    resolveModulesByPrompt: conflicts => resolveModules(selectModulesByPrompt, conflicts),
 };
