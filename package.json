@@ -4,6 +4,7 @@
   "description": "Command line interface for 'monorepo-deps-checker'",
   "main": "index.js",
   "scripts": {
+    "test": "jest",
     "lint": "eslint ."
   },
   "author": "Dmitry Bogomolov",
@@ -33,6 +34,7 @@
     "monorepo-deps-checker": "^0.0.4"
   },
   "devDependencies": {
-    "eslint": "^5.16.0"
+    "eslint": "^5.16.0",
+    "jest": "^24.8.0"
   }
 }
