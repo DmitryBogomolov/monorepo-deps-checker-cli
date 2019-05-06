@@ -192,38 +192,38 @@ function promptResolveModules(conflicts) {
 //     },
 // ];
 
-function selectCallbacks(options) {
-    if (options.printPackages) {
-        return [showPackages, null];
-    }
-    if (options.printModules) {
-        return [null, showModules];
-    }
-    let resolvePackages;
+function selectPackagesProcessor(options) {
     if (options.skipPackages) {
-        resolvePackages = null;
-    } else if (options.resolvePackages) {
-        resolvePackages = forceResolvePackages;
-    } else {
-        resolvePackages = promptResolvePackages;
+        return null;
     }
-    let resolveModules;
+    if (options.print) {
+        return showPackages;
+    }
+    if (options.resolvePackages) {
+        return forceResolvePackages;
+    }
+    return promptResolvePackages;
+}
+
+function selectModulesProcessor(options) {
     if (options.skipModules) {
-        resolveModules = null;
-    } else if (options.takeNewModule) {
-        resolveModules = resolveModulesByNew;
-    } else if (options.takeFrequentModule) {
-        resolveModules = resolveModulesByFrequent;
-    } else {
-        resolveModules = promptResolveModules;
+        return null;
     }
-    return [resolvePackages, resolveModules];
+    if (options.print) {
+        return showModules;
+    }
+    if (options.takeNewModule) {
+        return resolveModulesByNew;
+    }
+    if (options.takeFrequentModule) {
+        return resolveModulesByFrequent;
+    }
+    return promptResolveModules;
 }
 
 commander
     .version(packageInfo.version)
-    .option('--print-packages', 'Print packages conflicts')
-    .option('--print-modules', 'Print modules conflicts')
+    .option('--print', 'Print conflicts')
     .option('--skip-packages', 'Skip packages conflicts')
     .option('--skip-modules', 'Skip modules conflicts')
     .option('--resolve-packages', 'Resolve all packages conflicts')
@@ -237,7 +237,8 @@ if (!commander.args.length) {
 }
 
 const pathToDir = commander.args[0];
-const [processPackages, processModules] = selectCallbacks(commander);
+const processPackages = selectPackagesProcessor(commander);
+const processModules = selectModulesProcessor(commander);
 
 check(pathToDir, processPackages, processModules).then(
     () => {
