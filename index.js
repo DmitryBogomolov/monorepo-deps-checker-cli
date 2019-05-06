@@ -223,20 +223,17 @@ function selectModulesProcessor(options) {
 
 commander
     .version(packageInfo.version)
-    .option('--print', 'Print conflicts')
-    .option('--skip-packages', 'Skip packages conflicts')
-    .option('--skip-modules', 'Skip modules conflicts')
-    .option('--resolve-packages', 'Resolve all packages conflicts')
-    .option('--take-new-module', 'Resolve module conflicts with newest version')
-    .option('--take-frequent-module', 'Resolve module conflicts with most frequent version')
-    .option('--ignore [ignoredModules]', 'Ignore list for modules', arg => arg.split(','))
+    .option('--dir [dir]', 'repo directory')
+    .option('--print', 'print conflicts')
+    .option('--skip-packages', 'skip packages conflicts')
+    .option('--skip-modules', 'skip modules conflicts')
+    .option('--resolve-packages', 'resolve all packages conflicts')
+    .option('--take-new-module', 'resolve module conflicts with newest version')
+    .option('--take-frequent-module', 'resolve module conflicts with most frequent version')
+    .option('--ignore [ignoredModules]', 'ignore list for modules', arg => arg.split(','))
     .parse(process.argv);
 
-if (!commander.args.length) {
-    commander.help();
-}
-
-const pathToDir = commander.args[0];
+const pathToDir = commander.dir || process.cwd();
 const processPackages = selectPackagesProcessor(commander);
 const processModules = selectModulesProcessor(commander);
 
