@@ -96,6 +96,10 @@ function resolveModulesByPrompt(conflicts) {
         });
     });
 
+    function closeList({ end }) {
+        end(true);
+    }
+
     function printModules() {
         return printList(conflicts, {
             index: currentModuleIndex,
@@ -108,7 +112,7 @@ function resolveModulesByPrompt(conflicts) {
                 return `${item.moduleName} (${item.items.length}) ${postfix}`;
             },
             handlers: {
-                'space': ({ end }) => end(1),
+                'space': closeList,
             },
         }).then(({ note, index }) => {
             if (note) {
@@ -131,7 +135,7 @@ function resolveModulesByPrompt(conflicts) {
                 return [line, ...lines].join('\n');
             },
             handlers: {
-                'backspace': ({ end }) => end(1),
+                'backspace': closeList,
             },
         }).then(({ note, checks }) => {
             if (!note) {
