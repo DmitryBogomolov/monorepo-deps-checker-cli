@@ -1,6 +1,6 @@
 {
   "name": "monorepo-deps-checker-cli",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Command line interface for 'monorepo-deps-checker'",
   "main": "index.js",
   "scripts": {
@@ -29,9 +29,9 @@
     "mdc": "./index.js"
   },
   "dependencies": {
-    "cli-list-select": "^0.0.5",
+    "cli-list-select": "^0.0.6",
     "commander": "^2.20.3",
-    "monorepo-deps-checker": "^0.0.5"
+    "monorepo-deps-checker": "^0.0.6"
   },
   "devDependencies": {
     "eslint": "^5.16.0",
