@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/DmitryBogomolov/monorepo-deps-checker-cli.svg?branch=master)](https://travis-ci.org/DmitryBogomolov/monorepo-deps-checker-cli)
+[![CI](https://github.com/DmitryBogomolov/monorepo-deps-checker-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/DmitryBogomolov/monorepo-deps-checker-cli/actions/workflows/ci.yml)
 
 # monorepo-deps-checker-cli
 
