@@ -29,9 +29,9 @@
     "mdc": "./index.js"
   },
   "dependencies": {
-    "cli-list-select": "^0.0.6",
+    "cli-list-select": "^0.0.7",
     "commander": "^2.20.3",
-    "monorepo-deps-checker": "^0.0.6"
+    "monorepo-deps-checker": "^0.0.7"
   },
   "devDependencies": {
     "eslint": "^8.13.0",
