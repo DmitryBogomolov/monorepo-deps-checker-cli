@@ -69,7 +69,7 @@ const {
 function noop() { }
 
 function combineFilter(filter, process) {
-    return conflicts => process(filter(conflicts));
+    return (conflicts) => process(filter(conflicts));
 }
 
 function selectPackagesProcessor(options) {
@@ -120,8 +120,8 @@ commander
     .option('--resolve-packages', 'resolve packages conflicts')
     .option('--take-new-module', 'resolve module conflicts with newest version')
     .option('--take-frequent-module', 'resolve module conflicts with most frequent version')
-    .option('--ignore-packages [packages]', 'ignored packages (comma separated)', arg => arg.split(','))
-    .option('--ignore-modules [modules]', 'ignored modules (comma separated)', arg => arg.split(','))
+    .option('--ignore-packages [packages]', 'ignored packages (comma separated)', (arg) => arg.split(','))
+    .option('--ignore-modules [modules]', 'ignored modules (comma separated)', (arg) => arg.split(','))
     .parse(process.argv);
 
 const pathToDir = commander.dir || process.cwd();

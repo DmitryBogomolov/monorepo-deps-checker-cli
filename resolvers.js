@@ -47,7 +47,7 @@ function selectPackagesByPrompt(conflicts) {
             const postfix = isChecked ? `*${item.targetVersion}*` : getPackageVersionDesc(item);
             return `${getPackageDesc(item)}: ${postfix}`;
         },
-    }).then(({ checks }) => checks.map(tag => conflicts[tag]));
+    }).then(({ checks }) => checks.map((tag) => conflicts[tag]));
 }
 
 function resolveModules(selectConflicts, conflicts) {
@@ -80,7 +80,7 @@ function showAllModules(conflicts) {
 }
 
 function selectModulesByFrequent(conflicts) {
-    return conflicts.map(conflict => [conflict, 0]);
+    return conflicts.map((conflict) => [conflict, 0]);
 }
 
 function selectModulesByNew(conflicts) {
@@ -152,7 +152,7 @@ function selectModulesByPrompt(conflicts) {
             singleCheck: true,
             printItem: (item) => {
                 const line = getModuleVersionDesc(item);
-                const lines = item.packages.map(pack => `  ${pack.packageName}:${pack.section}`);
+                const lines = item.packages.map((pack) => `  ${pack.packageName}:${pack.section}`);
                 return [line, ...lines].join('\n');
             },
             handlers: {
@@ -172,11 +172,11 @@ function selectModulesByPrompt(conflicts) {
 }
 
 module.exports = {
-    showPackages: conflicts => resolvePackages(showAllPackages, conflicts),
-    showModules: conflicts => resolveModules(showAllModules, conflicts),
-    resolveAllPackages: conflicts => resolvePackages(selectAllPackages, conflicts),
-    resolvePackagesByPrompt: conflicts => resolvePackages(selectPackagesByPrompt, conflicts),
-    resolveModulesByNew: conflicts => resolveModules(selectModulesByNew, conflicts),
-    resolveModulesByFrequent: conflicts => resolveModules(selectModulesByFrequent, conflicts),
-    resolveModulesByPrompt: conflicts => resolveModules(selectModulesByPrompt, conflicts),
+    showPackages: (conflicts) => resolvePackages(showAllPackages, conflicts),
+    showModules: (conflicts) => resolveModules(showAllModules, conflicts),
+    resolveAllPackages: (conflicts) => resolvePackages(selectAllPackages, conflicts),
+    resolvePackagesByPrompt: (conflicts) => resolvePackages(selectPackagesByPrompt, conflicts),
+    resolveModulesByNew: (conflicts) => resolveModules(selectModulesByNew, conflicts),
+    resolveModulesByFrequent: (conflicts) => resolveModules(selectModulesByFrequent, conflicts),
+    resolveModulesByPrompt: (conflicts) => resolveModules(selectModulesByPrompt, conflicts),
 };
